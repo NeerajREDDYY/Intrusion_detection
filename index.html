@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KDD Attack Predictor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+
+  body {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    font-family: 'Poppins', sans-serif;
+    margin: 0; padding: 0;
+    display: flex; justify-content: center; align-items: center;
+    height: 100vh;
+    color: #fff;
+  }
+
+  .container {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 40px 50px;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    width: 400px;
+    text-align: center;
+  }
+
+  h1 {
+    margin-bottom: 20px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+  }
+
+  input[type="file"] {
+    margin: 20px 0;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: #6a11cb;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  input[type="file"]::file-selector-button {
+    background: #2575fc;
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  button {
+    background: #2575fc;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-top: 10px;
+  }
+  button:hover {
+    background: #1a54c7;
+  }
+
+  pre {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 15px;
+    border-radius: 12px;
+    margin-top: 20px;
+    max-height: 250px;
+    overflow-y: auto;
+    text-align: left;
+    font-size: 14px;
+  }
+
+  .footer {
+    font-size: 12px;
+    margin-top: 25px;
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>KDD Attack Predictor</h1>
+  <input type="file" id="fileInput" />
+  <br />
+  <button onclick="uploadFile()">Predict Attacks</button>
+
+  <pre id="output">Upload a file to see predictions...</pre>
+
+  <div class="footer">Powered by Flask & RandomForest</div>
+</div>
+
+<script>
+  async function uploadFile() {
+    const input = document.getElementById('fileInput');
+    if (!input.files[0]) {
+      alert("Please select a file first!");
+      return;
+    }
+    const formData = new FormData();
+    formData.append('file', input.files[0]);
+
+    const output = document.getElementById('output');
+    output.textContent = "Processing... Please wait.";
+
+    try {
+      const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        output.textContent = "Error: " + (error.error || "Unknown error");
+        return;
+      }
+
+      const data = await response.json();
+      let summaryText = "Prediction Summary:\n";
+      for (const [attack, count] of Object.entries(data.summary)) {
+        summaryText += `${attack}: ${count}\n`;
+      }
+      output.textContent = summaryText;
+    } catch (err) {
+      output.textContent = "Error communicating with server.";
+    }
+  }
+</script>
+
+</body>
+</html>
